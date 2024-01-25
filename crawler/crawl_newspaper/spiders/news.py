@@ -34,7 +34,7 @@ class NewsSpider(scrapy.Spider):
             for href in href_list:
                 if (len(href) >= 50 and ('http' not in href)):
                     result.add(response.meta.get("domain") + href)
-                elif url_pattern.match(href):
+                elif len(href) >= 50 and url_pattern.match(href):
                     result.add(href)
 
         for item in result:
