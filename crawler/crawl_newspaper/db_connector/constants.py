@@ -1,0 +1,5 @@
+HOST = "localhost"
+USER = "root"
+PASSWORD = ""
+DATABASE = "newspaper"
+PORT = "3306"
