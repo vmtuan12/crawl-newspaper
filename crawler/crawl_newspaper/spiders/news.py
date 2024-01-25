@@ -3,6 +3,7 @@ import scrapy
 from scrapy.http import Response
 from scrapy.selector import Selector
 from ..items import CrawlNewspaperItem
+import re
 
 from ..db_connector.connector import get_all_websites, get_categories, get_contents
 import json
@@ -12,7 +13,7 @@ class NewsSpider(scrapy.Spider):
 
     def start_requests(self):
         web_list = get_all_websites()
-
+        
         for website in web_list: 
             domain = website[1] 
             categories = json.loads(website[2])
@@ -23,6 +24,7 @@ class NewsSpider(scrapy.Spider):
 
     def parse_link(self, response):
         result = set()
+        url_pattern = re.compile(f"^{re.escape(response.meta.get("domain"))}[^\/]*\\.html$")
 
         x_path_categories = get_categories(response.meta.get("website_id"))
         for cate in x_path_categories:
@@ -30,9 +32,11 @@ class NewsSpider(scrapy.Spider):
             href_list = response.xpath(x_path).getall()
 
             for href in href_list:
-                if len(href) >= 50 and ('http' not in href):
+                if (len(href) >= 50 and ('http' not in href)):
                     result.add(response.meta.get("domain") + href)
-        
+                elif url_pattern.match(href):
+                    result.add(href)
+
         for item in result:
             yield scrapy.Request(url=item, callback=self.parse, meta={"website_id": response.meta.get("website_id")})
 
