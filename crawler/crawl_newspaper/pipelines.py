@@ -6,8 +6,19 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-
+from kafka import KafkaProducer
+import json
 
 class CrawlNewspaperPipeline:
+    
+    def open_spider(self, spider):
+            
+        self.producer = KafkaProducer(bootstrap_servers=['localhost:29092'], 
+                                      value_serializer=lambda x: json.dumps(x).encode('utf-8'))
+        self.topic = 'newspaper'
+
     def process_item(self, item, spider):
+        msg = ItemAdapter(item).asdict()
+        self.producer.send(self.topic, value=msg)
+        self.producer.flush()
         return item
